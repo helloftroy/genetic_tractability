@@ -1,0 +1,15 @@
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+
+# HTTP response cache (regenerable via the pipeline; large, not meaningful diff content)
+data/cache/
+
+# Per-paper keyword-span packets (regenerable intermediate artifact between scripts 14 and 15)
+data/genetic_tractability/keyword_spans/
+
+# Cluster-generated / machine-specific (mirrors fair_ocean_agent's cluster/ conventions)
+cluster/env_activate.sh
+cluster/hf_cache/
+logs/

@@ -1,0 +1,6 @@
+paper_id,text_source,n_sentences_total,n_tagged_sentences,n_manipulation,n_success,n_failure,n_wild_type,n_not_wild_type,regex_accessions,regex_strains,has_signal
+P4732d69493e0,fulltext,120,62,12,8,0,7,7,0,1,True
+P003f0cd91324,fulltext,163,42,12,0,0,2,1,0,0,True
+P01057f40f3b2,abstract,9,4,2,0,0,0,0,0,0,True
+P010da0446b22,fulltext,241,141,12,1,1,12,12,0,3,True
+P018376861d30,abstract,10,3,1,0,0,2,0,0,0,True
