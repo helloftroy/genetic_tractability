@@ -297,3 +297,93 @@ P548f268bb6c0,Adaptive evolution of Paecilomyces variotii enhanced the biodetoxi
 P54d57cf491df,Swimming Motility of a Gut Bacterial Symbiont Promotes Resistance to Intestinal Expulsion and Enhances Inflammation,yes,Genetic switches used to manipulate Vibrio motility in vivo,True
 P5595c361b9e7,Toward industrial production of isoprenoids in Escherichia coli: lessons learned from CRISPR-Cas9 based optimization of a chromosomally integrated mevalonate pathway,yes,CRISPR-Cas9 used to edit promoter sequences in chromosome,True
 P55dc6d0b087c,Glycoengineered outer membrane vesicles: A novel platform for bacterial vaccines,no,No genetic manipulation of microbes described,True
+P5610e1451379,Survey of clustered regularly interspaced short palindromic repeats and their associated Cas proteins (CRISPR/Cas) systems in multiple sequenced strains of Klebsiella pneumoniae.,no,Purely bioinformatics; no wet-lab manipulation,True
+P561358514e5b,Microbial nanowires for bioenergy applications,no,"Only mentions genetic manipulation as a result, not an attempt",True
+P56bd96046724,,yes,CRISPRi/a used to activate silent BGCs in Streptomyces,True
+P56db64f60eab,"Yeast α-L-Rhamnosidase: Sources, Properties, and Industrial Applications",maybe,no abstract text available,False
+P573a12b74ce4,Control of drought stress in wheat using plant-growth-promoting bacteria.,maybe,no abstract text available,False
+P579b64ee253d,Polymyxin B-targeted liposomal photosensitizer cures MDR A. baumannii burn infections and accelerates wound healing via M1/M2 macrophage polarization,no,No genetic manipulation of microbes performed,True
+P57a8bc274ec2,Inhibition of NHEJ repair by type ii-a CRISPR-Cas systems in bacteria,yes,Experimental investigation of molecular interactions in bacteria,True
+P57daf9a8adac,"44.Uzcategui E, Johansson G, Ek B, Pettersson G. The 1,4-β-D-glucan glucanohydrolases from Phanerochaete chrysosporium. Re-assessment of their significance in cellulose degradation mechanisms. J Biote",no,No genetic manipulation performed,True
+P57dfb6d56a8c,Instability challenges and stabilization strategies of pharmaceutical proteins.,no,"Focuses on protein stability, not microbial genetic manipulation",True
+P580988fa1dbe,Role of Lactobacillus reuteri in human health and diseases,no,No genetic manipulation attempted,True
+P583d4618740d,Programmable DNA looping using engineered bivalent dCas9 complexes,yes,Engineered bivalent dCas9 used to manipulate DNA looping in E. coli,True
+P586e68b62f18,A new crustin is involved in the innate immune response of shrimp Litopenaeus vannamei,no,"RNAi knockdown, not genetic manipulation of microbes",True
+P58a5746084e7,Pooled CRISPRi Screening of the Cyanobacterium Synechocystis Sp PCC 6803 for Enhanced Industrial Phenotypes,yes,CRISPRi library transformed and used to repress genes,True
+P5942aa2594bd,Exploring the Oral Bacterial Flora: Current Status and Future Directions,no,"Only bioinformatics analysis, no genetic manipulation",True
+P5966c71c167a,Effect of Plasmid Incompatibility on DNA Transfer to Streptococcus cremoris,yes,Electroporation used to transform bacteria,True
+P59769ddb1800,Structures of Cas9 endonucleases reveal RNA-mediated conformational activation,no,"Focuses on structural biology, no genetic manipulation",True
+P59b6690b85b2,Engineering of multiple modules to improve amorphadiene production in Bacillus subtilis using CRISPR-Cas9,yes,CRISPR-Cas9 used for genome editing in Bacillus subtilis,True
+P5a0132f393f5,Genome-wide abolishment of mobile genetic elements using genome shuffling and CRISPR/Cas-assisted MAGE allows the efficient stabilization of a bacterial chassis,yes,CRISPR/Cas-assisted MAGE used for targeted deletion,True
+P5a585b20e7ae,CRISPR/Cas9-Mediated Ehd3 Knockout Enhances High Unsaturated Fatty Acid Content in Zebrafish Muscle,maybe,no abstract text available,False
+P5af651b65d9a,Efficient insertional mutagenesis in lactococci and other gram-positive bacteria,yes,Describes transposon-mediated genetic manipulation,True
+P5aff35aed8b3,Molecular identification of Nocardia seriolae and comparative analysis of spleen transcriptomes of hybrid snakehead (Channa maculata female × Channa argus male) with Nocardiosis disease,no,No genetic manipulation of microbes performed,True
+P5b16579a279d,Differentiation of Mycobacterium tuberculosis isolates by spoligotyping and IS6110 restriction fragment length polymorphism.,no,No genetic manipulation performed,True
+P5b63e6c6d44c,Outer membrane vesicles of Neisseria lactamica as a potential mucosal adjuvant,no,No genetic manipulation performed,True
+P5c693a0c3b7d,Diverse antimicrobial killing by enterococcus faecium E 50-52 bacteriocin,no,No genetic manipulation performed,True
+P5c84be0fc2e6,Development of an efficient genome editing tool in Bacillus licheniformis using CRISPR-Cas9 nickase,yes,"CRISPR-Cas9n used for gene deletion, integration, and large fragment removal",True
+P5ce0f6922642,Utilization of CRISPR Interference to Investigate the Contribution of Genes to Pathogenesis in a Macrophage Model of Mycobacterium tuberculosis Infection,no,"Manipulates host cells, not intracellular bacteria",True
+P5d054010dc91,"SEVA-Cpf1, a CRISPR-Cas12a vector for genome editing in cyanobacteria",yes,Performed conjugation and gene deletion in cyanobacteria,True
+P5dec9af0fd65,Robust multicellular computing using genetically encoded NOR gates and chemical “wires”,yes,Genetically engineered NOR gate in E. coli with quorum sensing,True
+P5ecf820c1976,A versatile anti-CRISPR platform for opto- and chemogenetic control of CRISPR-Cas9 and Cas12 across a wide range of orthologs.,no,"Manipulates human cells, not microbes",True
+P5efd33c7c4d8,"Activation and mechanism of a cryptic oviedomycin gene cluster via the disruption of a global regulatory gene, adpA, in Streptomyces ansochromogenes",yes,Disruption of adpA and analysis of gene cluster activation,True
+P5f661e8490d9,CRISPR-Cas12 and Cas13: the lesser known siblings of CRISPR-Cas9.,maybe,no abstract text available,False
+P5f8bf0aab27b,"Individual domains of colicins confer specificity in colicin uptake, in pore-properties and in immunity requirement",yes,Hybrid colicins constructed and purified via genetic recombination,True
+P5f987d50e1c8,CAMERS-B: CRISPR/Cpf1 assisted multiple-genes editing and regulation system for Bacillus subtilis,yes,Genetically manipulated B. subtilis with CRISPR/Cpf1 editing,True
+P5fb69512c682,Novel configurations of type I-E CRISPR-Cas system in Corynebacterium striatum clinical isolates,no,"Only bioinformatics analysis of CRISPR systems, no genetic manipulation",True
+P60319a2d1340,Luminal and Mucosal-Associated Intestinal Microbiota in Patients with Diarrhea-Predominant Irritable Bowel Syndrome,no,"Only molecular analysis, no genetic manipulation",True
+P607bd329d3a7,Intratumoural production of TNFα by bacteria mediates cancer therapy,yes,Engineered E. coli to produce TNFα in tumors,True
+P60a234b8aee2,Characterization of the iron-regulated desA promoter of Streptomyces pilosus as a system for controlled gene expression in actinomycetes,no,No genetic manipulation performed,True
+P61090fe9f0a6,Marine microbe-mediated biodegradation of low- and high-density polyethylenes,maybe,no abstract text available,False
+P617d4a243315,Unraveling the bioactivities and immunomodulatory potential of postbiotics derived from Bacillus subtilis and B. amyloliquefaciens for aquaculture,no,No genetic manipulation performed,True
+P619f8f2d6c87,CRAGE-CRISPR Facilitates Rapid Activation of Secondary Metabolite Biosynthetic Gene Clusters in Bacteria,yes,CRISPR used to knock out and activate BGCs in bacteria,True
+P61e61d43f967,Enzymatic De-Glycosylation of Rutin Improves Its Antioxidant and Antiproliferative Activities,no,"Enzymatic hydrolysis, not genetic manipulation",True
+P6242fcf065ad,Therapeutic potential of secondary metabolites from endophytic fungi in biotechnology and medicine,maybe,no abstract text available,False
+P629b7be41883,Role of sortase a in Lactobacillus gasseri Kx110A1 adhesion to gastric epithelial cells and competitive exclusion of Helicobacter pylori,yes,Genetic mutant constructed for srtA gene,True
+P62aaa0c6bdbb,Programmable CRISPR‐Cas Transcriptional Activation in Bacteria,yes,Directed evolution of dCas9-AsiA in E. coli,True
+P62d1b1492828,Impact of disposable mask microplastics pollution on the aquatic environment and microalgae growth,no,No genetic manipulation performed,True
+P62eebc6cb0b5,Adaptive laboratory evolution under oxidative stress in lactococcus lactis subsp. lactis LM1009: Transcriptomic remodeling and functional enhancement,no,No genetic manipulation attempted,True
+P6312cec0baad,The Female Urinary Microbiome: A Comparison of Women with and without Urgency Urinary Incontinence,no,Only sequencing and culture; no genetic manipulation,True
+P632d92ed357a,Phase-variable restriction/modification systems are required for Helicobacter pylori colonization,yes,Mutants constructed via gene deletion and substitution,True
+P63f27f28c858,Reinvigorating AMR resilience: leveraging CRISPR–Cas technology potentials to combat the 2024 WHO bacterial priority pathogens for enhanced global health security—a systematic review.,no,"Purely systematic review, no wet-lab manipulation described",True
+P64e1eb7825ed,Supramolecular assemblies of heterogeneous mesoporous silica nanoparticles to Co-deliver antimicrobial peptides and antibiotics for synergistic eradication of pathogenic biofilms,no,No genetic manipulation of microbes performed,True
+P6567ed766fed,Recent Updates on Microbial Naringinase for Debittering of Citrus Juices by Transformation of Flavonoid Naringin,maybe,no abstract text available,False
+P65aaf97f4ef1,Establishment and application of a CRISPR-Cas12a assisted genome-editing system in Zymomonas mobilis,yes,"CRISPR-Cas12a used for gene editing, deletion, insertion, and plasmid curing in Z. mobilis",True
+P663312fbc98b,CcrZ Is a Pneumococcal Spatiotemporal Cell Cycle Regulator that Interacts with FtsZ and Controls DNA Replication by Modulating the Activity of DnaA,no,No genetic manipulation performed,True
+P66c9a1ea1017,Co-spinning of silver nanoparticles with nisin increases the antimicrobial spectrum of PDLLA: PEO nanofibers,no,No genetic manipulation of microbes performed,True
+P66db4a29f378,Development of the static and dynamic gene expression regulation toolkit in Pseudomonas chlororaphis,yes,Constructed promoter libraries and fused with report genes,True
+P66e424c05779,Transformation of a filamentous cyanobacterium by electroporation,yes,Electroporation performed on cyanobacterium,True
+P66e43de9f3c2,Constitutive expression of a cytotoxic anticancer protein in tumor-colonizing bacteria,yes,Engineered bacteria to express cytotoxic protein constitutively,True
+P66ec274957d1,Directed chromosomal integration and expression of porcine rotavirus outer capsid protein VP4 in Lactobacillus casei ATCC393,yes,Genetic integration and expression of VP4 achieved in Lactobacillus,True
+P672c81151e2b,Efficient system for directed integration into the Lactobacillus acidophilus and Lactobacillus gasseri chromosomes via homologous recombination,yes,Describes genetic integration and gene inactivation in bacteria,True
+P676a8525f583,Probiotic activity of saccharomyces cerevisiae var. boulardii against human pathogens,maybe,no abstract text available,False
+P678f25c864d9,Gene Silencing with CRISPRi in Bacteria and Optimization of dCas9 Expression Levels,yes,Describes hands-on CRISPRi manipulation in bacteria,True
+P679ae3c6c4c5,Direct Conversion of CO2 to α-Farnesene Using Metabolically Engineered Synechococcus elongatus PCC 7942,yes,Metabolically engineered Synechococcus elongatus with heterologous FS and MEP pathway,True
+P67a299fbe845,Use of a conditionally lethal gene in Anabaena sp. strain PCC 7120 to select for double recombinants and to entrap insertion sequences,yes,Genetic manipulation via recombination and selection in cyanobacterium,True
+P6862c027ede9,"Randomized, Placebo-Controlled Phase 2 Trial of a Lactobacillus Crispatus Probiotic Given Intravaginally for Prevention of Recurrent Urinary Tract Infection",no,"Probiotic administration, no genetic manipulation",True
+P68bbc5f7a9fd,CRISPR Interference to Inducibly Repress Gene Expression in Chlamydia trachomatis,yes,CRISPRi system implemented and modified in transformed C. trachomatis,True
+P68bde2f18e0d,"Dietary inclusion of watermelon rind powder and Lactobacillus plantarum: effects on Nile tilapia’s growth, skin mucus and serum immunities, and disease resistance",no,No genetic manipulation of microbes performed,True
+P69112ea7b612,Naturally occurring off-switches for CRISPR-Cas9.,no,No genetic manipulation of microbes performed,True
+P6923da38281e,Nature of DNA polymorphism in the direct repeat cluster of Mycobacterium tuberculosis; application for strain differentiation by a novel typing method.,no,Only sequencing and bioinformatics analysis performed,True
+P69438d5f89ed,Precision genome editing unveils a breakthrough in reversing antibiotic resistance: CRISPR/Cas9 targeting of multi-drug resistance genes in methicillin-resistant Staphylococcus aureus.,yes,CRISPR/Cas9 plasmids electroporated into MRSA with gene editing and validation,True
+P699f03bb1b9a,Predatory activity of Myxococcus xanthus outer-membrane vesicles and properties of their hydrolase cargo,no,No genetic manipulation performed,True
+P699f9415ee9b,Programmed hierarchical patterning of bacterial populations,yes,Genetic circuits built and validated in bacteria,True
+P69a332dd0fd2,The nedd-8 Activating Enzyme Gene Underlies Genetic Resistance to Infectious Pancreatic Necrosis Virus in Atlantic Salmon,yes,CRISPR-Cas9 knockout performed in salmon cell lines,True
+P69e99810b93f,Transcriptional Regulation of the Rhodococcus J1 nitA Gene Encoding a Nitrilase,no,No genetic manipulation performed,True
+P6a126a2d9a49,"Bioactive seco-sativene sesquiterpenoids from an Artemisia desertorum endophytic fungus, Cochliobolus sativus",no,No genetic manipulation performed,True
+P6abbe27807b6,Extracellular production of the engineered thermostable protease pernisine from aeropyrum pernix K1 in Streptomyces rimosus,yes,Genetic engineering performed in heterologous host,True
+P6acd0d3766c4,"Heterologous synthesis of geranyllinalool, a diterpenol plant product, in the cyanobacterium Synechocystis",yes,Genetically engineered Synechocystis to produce geranyllinalool,True
+P6b4ecda100e2,Disruption of the gene encoding restriction endonuclease SuaI and development of a host–vector system for the thermoacidophilic archaeon Sulfolobus acidocaldarius,yes,Electroporation used to transform bacteria,True
+P6b70d68e7889,Cas13d: a new molecular scissor for transcriptome engineering.,no,"Review of CRISPR-Cas13d applications, no wet-lab manipulation described",True
+P6b9ebc5ef780,Expanding the Potential of CRISPR-Cpf1-Based Genome Editing Technology in the Cyanobacterium Anabaena PCC 7120,yes,Details genetic manipulation in cyanobacterium,True
+P6bb7518c30d6,Surface display of a functional minicellulosome by intracellular complementation using a synthetic yeast consortium and its application to cellulose hydrolysis and ethanol production,no,No genetic manipulation of microbes performed,True
+P6bd539d75c55,"Microbial 2,3-butanediol production: a state-of-the-art review",no,No genetic manipulation mentioned,True
+P6c179a297b9a,Uncovering the link between the SpnIII restriction modification system and LuxS in Streptococcus pneumoniae meningitis isolates,no,No genetic manipulation performed,True
+P6c506a8ac538,CRISPR interference can prevent natural transformation and virulence acquisition during in vivo bacterial infection.,yes,CRISPR programmed and tested in vivo,True
+P6c521a6074e7,Engineering transcription factor-based biosensors for repressive regulation through transcriptional deactivation design in Saccharomyces cerevisiae,yes,Genetically engineered biosensors in yeast with repressive regulation,True
+P6c81196a51c8,"Pseudovenmycin, a novel lasso peptide from Streptomyces pseudovenezuelae NA07851",maybe,no abstract text available,False
+P6c8dcd04dbad,Pyrrolnitrin is more essential than phenazines for Pseudomonas chlororaphis G05 in its suppression of fusarium graminearum,yes,Knocked out and complemented prn operon in P. chlororaphis,True
+P6c910c73c4d4,Biosynthesis of platform chemical 3-hydroxypropionic acid (3-HP) directly from CO2 in cyanobacterium Synechocystis sp,yes,Genetic manipulation performed in cyanobacterium,True
+P6d4f4506193e,"Photosynthetic conversion of CO2 to farnesyl diphosphate-derived phytochemicals (amorpha-4,11-diene and squalene) by engineered cyanobacteria",yes,Engineered cyanobacteria with gene overexpression and pathway modification,True
+P6df2bc60641b,Epigenetic induction of secondary metabolites production in endophytic fungi Penicillium chrysogenum and GC-MS analysis of crude metabolites with anti-HIV-1 activity,no,"Epigenetic modification, not genetic manipulation",True
+P6df9acb90b6a,Interplay of intracellular and trans-cellular DNA methylation in natural archaeal consortia,no,No genetic manipulation performed,True
