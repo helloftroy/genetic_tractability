@@ -31,6 +31,17 @@ FAILURE_PHRASES = [
     '"Cas9 was toxic"',
     '"plasmid could not replicate"',
     '"no colonies were obtained"',
+    # Round 2: additional failure/intractability phrasing not in the original spec list.
+    '"no viable transformants"',
+    '"genetically intractable"',
+    '"genetically recalcitrant"',
+    '"could not be genetically manipulated"',
+    '"lacks genetic tools"',
+    '"remains genetically intractable"',
+    '"transformation attempts failed"',
+    '"no detectable transformants"',
+    '"plasmid loss"',
+    '"unstable plasmid maintenance"',
 ]
 
 ORGANISM_CONTEXT_TERMS = [
@@ -38,7 +49,7 @@ ORGANISM_CONTEXT_TERMS = [
     '"environmental isolate"', '"non-model"',
 ]
 
-PER_QUERY = 15
+PER_QUERY = 100
 
 
 def main() -> None:

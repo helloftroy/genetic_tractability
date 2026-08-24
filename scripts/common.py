@@ -37,7 +37,7 @@ _session = requests.Session()
 _session.headers.update({"User-Agent": USER_AGENT})
 
 _last_request_time: Dict[str, float] = {}
-_MIN_INTERVAL = 0.34  # ~3 req/s, polite for unauthenticated public APIs
+_MIN_INTERVAL = 0.2  # ~5 req/s, still polite for unauthenticated public APIs but faster for a much larger discovery scope
 
 
 def _throttle(host: str) -> None:
@@ -133,7 +133,7 @@ def epmc_search(query: str, max_results: int = 100, result_type: str = "core", s
     return results[:max_results]
 
 
-def epmc_references(source: str, ext_id: str, max_results: int = 300) -> List[dict]:
+def epmc_references(source: str, ext_id: str, max_results: int = 600) -> List[dict]:
     """Fetch the structured reference list Europe PMC has for a given article."""
     refs: List[dict] = []
     page = 1

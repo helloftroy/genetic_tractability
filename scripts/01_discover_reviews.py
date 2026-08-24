@@ -52,11 +52,55 @@ REVIEW_TOPICS = [
     "genetic tools for archaea",
     "domestication of industrial microorganisms",
     "expanding the genetic toolbox of bacteria",
+    # Round 3: organism-specific topics. Review-table extraction (script 12)
+    # is the highest-precision candidate source this pipeline has, and a
+    # genus-specific review is far more likely to carry a real "Host |
+    # Method | Reference" table than a generic one -- worth the extra
+    # queries even though many will overlap with round 1/2's hits.
+    "genetic tools for Streptomyces",
+    "genetic tools for Rhodococcus",
+    "genetic tools for Clostridium",
+    "genetic tools for Synechocystis",
+    "genetic tools for Pseudomonas",
+    "genetic tools for Bacillus",
+    "genetic tools for Mycobacterium",
+    "genetic tools for Acinetobacter",
+    "genetic tools for Corynebacterium",
+    "genetic tools for Lactobacillus",
+    "genetic tools for Bifidobacterium",
+    "genetic tools for Xanthomonas",
+    "genetic tools for Agrobacterium",
+    "genetic tools for Rhizobium",
+    "genetic tools for Klebsiella",
+    "genetic tools for Salmonella",
+    "genetic tools for Listeria",
+    "genetic tools for Staphylococcus",
+    "genetic tools for Shewanella",
+    "genetic tools for Halomonas",
+    "genetic tools for Sulfolobus",
+    "genetic tools for Haloferax",
+    "genetic tools for Thermus",
+    "genetic tools for Deinococcus",
+    "genetic tools for Zymomonas",
+    "genetic tools for Cupriavidus",
+    "genetic tools for Ralstonia",
+    # Round 3: technique-specific topics not covered above.
+    "markerless gene deletion in bacteria",
+    "counterselection markers for bacteria",
+    "Golden Gate assembly for bacterial engineering",
+    "riboswitch selection markers bacteria",
+    "phage-based genetic tools for bacteria",
+    "synthetic biology parts for bacteria",
+    "genome minimization in bacteria",
+    "inducible expression systems for bacteria",
+    "genetic circuit design in bacteria",
+    "base editing in bacteria",
+    "serine integrase genome engineering bacteria",
 ]
 
 TARGET_TOTAL_REVIEWS = 100
-PER_TOPIC = 4
-FETCH_PER_TOPIC = 20
+PER_TOPIC = 10
+FETCH_PER_TOPIC = 50
 
 REVIEW_SEED_FIELDNAMES = [
     "paper_id", "title", "doi", "pmid", "year", "journal",
@@ -81,7 +125,7 @@ def is_relevant(title: str) -> bool:
 
 
 SORT_PASSES = ["", "CITED desc"]  # relevance, then citation-sorted to surface older influential reviews
-OLD_YEAR_PER_TOPIC = 2
+OLD_YEAR_PER_TOPIC = 5
 OLD_YEAR_RANGE = "1985 TO 2018"  # explicit older-literature pass: relevance ranking alone skews heavily to 2025/2026
 
 

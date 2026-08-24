@@ -33,9 +33,26 @@ BROAD_QUERIES = [
     '"plasmid transformation" AND bacteria',
     '"heterologous expression" AND "non-model bacteria"',
     '"transposon mutagenesis" AND bacteria',
+    # Round 2: techniques/phrasing not covered above.
+    '"chemical transformation" AND bacteria',
+    '"transduction" AND bacteria AND plasmid',
+    '"plasmid maintenance" AND bacteria',
+    '"stable integration" AND bacteria AND genome',
+    '"gene knockout" AND bacteria',
+    '"gene knock-in" AND bacteria',
+    '"homologous recombination" AND bacteria AND genetic',
+    '"CRISPR interference" AND bacteria',
+    '"Cas12a" AND bacteria AND "genome editing"',
+    '"suicide vector" AND bacteria',
+    '"shuttle vector" AND bacteria AND transformation',
+    '"markerless deletion" AND bacteria',
+    '"counterselection" AND bacteria AND genetic',
+    'electrotransformation AND bacteria',
+    '"genetic transformation" AND "environmental isolate"',
+    '"genetic transformation" AND "marine bacterium"',
 ]
 
-PER_QUERY = 25
+PER_QUERY = 150
 
 
 def main() -> None:
