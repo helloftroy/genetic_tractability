@@ -15,7 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from candidate_store import CandidateStore
-from common import DATA_DIR, epmc_search, parse_epmc_record, read_csv_dicts, write_csv_dicts
+from common import DATA_DIR, env_int, epmc_search, parse_epmc_record, read_csv_dicts, write_csv_dicts
 
 REVIEW_TOPICS = [
     "genetic manipulation of non-model bacteria",
@@ -99,8 +99,14 @@ REVIEW_TOPICS = [
 ]
 
 TARGET_TOTAL_REVIEWS = 100
-PER_TOPIC = 10
-FETCH_PER_TOPIC = 50
+# Overridable at submit time, e.g.:
+#   sbatch --export=ALL,GT_REVIEW_PER_TOPIC=25,GT_REVIEW_FETCH_PER_TOPIC=150 cluster/run_discovery.sbatch
+# Raising these samples deeper into each topic's (often huge) relevance/
+# citation-ranked hit list via Europe PMC's cursorMark pagination -- real
+# new pages, not cache replays, as long as that depth wasn't already
+# fetched by a prior run.
+PER_TOPIC = env_int("GT_REVIEW_PER_TOPIC", 25)
+FETCH_PER_TOPIC = env_int("GT_REVIEW_FETCH_PER_TOPIC", 150)
 
 REVIEW_SEED_FIELDNAMES = [
     "paper_id", "title", "doi", "pmid", "year", "journal",
@@ -125,7 +131,7 @@ def is_relevant(title: str) -> bool:
 
 
 SORT_PASSES = ["", "CITED desc"]  # relevance, then citation-sorted to surface older influential reviews
-OLD_YEAR_PER_TOPIC = 5
+OLD_YEAR_PER_TOPIC = env_int("GT_REVIEW_OLD_YEAR_PER_TOPIC", 15)
 OLD_YEAR_RANGE = "1985 TO 2018"  # explicit older-literature pass: relevance ranking alone skews heavily to 2025/2026
 
 

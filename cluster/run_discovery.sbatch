@@ -1,14 +1,28 @@
 #!/bin/bash
 # Stage 1: paper discovery. No LLM calls at all -- this is the HTTPS-capable,
-# CPU-only half of the pipeline (Europe PMC + NCBI E-utilities). Runs
-# scripts 01-04, 06, 09, 11, 12 (review discovery, broad/negative keyword
-# search, review-reference extraction, review-table extraction, genome
-# accession matching). Warms data/cache/ for everything it touches --
-# run_extraction.sbatch (GPU, no internet) later reads that same cache.
+# CPU-only half of the pipeline (Europe PMC E-utilities). Runs scripts
+# 01-04, 12, 11 (review discovery, broad/negative keyword search,
+# review-reference extraction, review-table extraction, title cleanup).
+# Warms data/cache/ for everything it touches -- run_prefetch.sbatch and
+# run_extraction.sbatch later read that same cache.
 #
 # Partition name is copied from fair_ocean_agent/cluster/run_discovery.sbatch
 # (same cluster, same account) as a starting point -- confirm with `sinfo`
 # before submitting if this is a fresh account/allocation.
+#
+# Discovery-depth knobs (all optional, default to a moderate-but-real
+# scope -- raise them to search deeper into the same Europe PMC queries'
+# hit lists via cursorMark pagination, which fetches genuinely new pages,
+# not cache replays, as long as that depth was not already fetched by a
+# prior run):
+#   sbatch --export=ALL,GT_REVIEW_PER_TOPIC=25,GT_REVIEW_FETCH_PER_TOPIC=150,\
+#     GT_REVIEW_OLD_YEAR_PER_TOPIC=15,GT_BROAD_PER_QUERY=500,GT_NEGATIVE_PER_QUERY=400 \
+#     cluster/run_discovery.sbatch
+# This does NOT pick up newly-published papers matching queries you've
+# already exhausted -- that needs clearing data/cache/ (not done here on
+# purpose, since a full clear re-fetches everything from scratch and this
+# job is meant to stay fast/incremental). It only reaches further into the
+# existing relevance/citation-ranked result lists.
 #SBATCH --job-name=genetic_tractability_discovery
 #SBATCH --partition=service
 #SBATCH --cpus-per-task=4

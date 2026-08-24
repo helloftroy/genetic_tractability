@@ -30,6 +30,19 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 CONTACT_EMAIL = os.environ.get("GENETIC_TRACTABILITY_CONTACT_EMAIL", "research@example.org")
 USER_AGENT = f"genetic-tractability-discovery/0.1 (mailto:{CONTACT_EMAIL})"
 
+
+def env_int(name: str, default: int) -> int:
+    """Reads an integer discovery-depth knob from the environment (e.g. so
+    `sbatch --export=ALL,GT_BROAD_PER_QUERY=800 cluster/run_discovery.sbatch`
+    controls it directly), falling back to `default` when unset."""
+    raw = os.environ.get(name)
+    if raw is None or raw == "":
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        raise ValueError(f"Environment variable {name}={raw!r} is not a valid integer")
+
 EPMC_BASE = "https://www.ebi.ac.uk/europepmc/webservices/rest"
 NCBI_EUTILS_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 

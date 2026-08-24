@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from candidate_store import CandidateStore
-from common import epmc_search, parse_epmc_record
+from common import env_int, epmc_search, parse_epmc_record
 
 FAILURE_PHRASES = [
     '"failed to transform"',
@@ -49,7 +49,8 @@ ORGANISM_CONTEXT_TERMS = [
     '"environmental isolate"', '"non-model"',
 ]
 
-PER_QUERY = 100
+# Overridable at submit time: sbatch --export=ALL,GT_NEGATIVE_PER_QUERY=800 cluster/run_discovery.sbatch
+PER_QUERY = env_int("GT_NEGATIVE_PER_QUERY", 400)
 
 
 def main() -> None:

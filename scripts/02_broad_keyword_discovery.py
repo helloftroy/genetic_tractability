@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from candidate_store import CandidateStore
-from common import epmc_search, parse_epmc_record
+from common import env_int, epmc_search, parse_epmc_record
 
 BROAD_QUERIES = [
     '"genetic manipulation" AND bacteria',
@@ -52,7 +52,8 @@ BROAD_QUERIES = [
     '"genetic transformation" AND "marine bacterium"',
 ]
 
-PER_QUERY = 150
+# Overridable at submit time: sbatch --export=ALL,GT_BROAD_PER_QUERY=800 cluster/run_discovery.sbatch
+PER_QUERY = env_int("GT_BROAD_PER_QUERY", 500)
 
 
 def main() -> None:
