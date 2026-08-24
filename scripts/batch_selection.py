@@ -25,14 +25,42 @@ def select_triage_batch(limit: int, already_triaged: set[str] | None = None) -> 
         if p.get("is_review") != "True" and p["paper_id"] not in already_triaged
     ]
 
-    def priority(p: dict) -> tuple:
-        route = p.get("discovery_route", "")
-        return (
-            0 if p["paper_id"] in has_organism_guess else 1,
-            0 if "negative_keyword" in route else 1,
-            0 if "broad_keyword" in route else 1,
-            0 if "review_reference" in route else 1,
-        )
+    # A single priority sort with table-derived (organism_guess) ranked first
+    # was tried initially, but a pure lexicographic sort means the FIRST
+    # tuple element dominates completely: since table-derived candidates
+    # (~3,300) vastly outnumber negative_keyword ones, they filled the
+    # entire batch and negative_keyword never got a real slot -- confirmed
+    # live, a 350-candidate batch pulled in 16/17 contributing papers via
+    # review_reference and exactly zero via negative_keyword, which visibly
+    # skewed the resulting observations toward success/non-wild-type
+    # outcomes (spec principle #1: "failure is data" -- a batch that never
+    # samples the failure-hunting route can't surface it). Fixed with a
+    # quota: reserve a guaranteed share of every batch for negative_keyword
+    # candidates regardless of table origin, so failure-search recall
+    # can't be crowded out by the (larger, success-biased) table pool.
+    negative_pool = [p for p in candidates if "negative_keyword" in p.get("discovery_route", "")]
+    table_pool = [
+        p for p in candidates
+        if p["paper_id"] in has_organism_guess and "negative_keyword" not in p.get("discovery_route", "")
+    ]
+    other_pool = [
+        p for p in candidates
+        if p["paper_id"] not in has_organism_guess and "negative_keyword" not in p.get("discovery_route", "")
+    ]
 
-    candidates.sort(key=priority)
-    return candidates[:limit]
+    def other_priority(p: dict) -> tuple:
+        route = p.get("discovery_route", "")
+        return (0 if "broad_keyword" in route else 1, 0 if "review_reference" in route else 1)
+
+    other_pool.sort(key=other_priority)
+
+    negative_quota = max(1, round(limit * 0.35)) if negative_pool else 0
+    table_quota = max(1, round(limit * 0.45)) if table_pool else 0
+
+    selected = negative_pool[:negative_quota] + table_pool[:table_quota]
+    # Backfill any quota a pool couldn't fill (e.g. negative_pool exhausted)
+    # from whichever pool still has candidates, so a small negative_pool
+    # never silently shrinks the batch below `limit`.
+    remaining = (negative_pool[negative_quota:] + table_pool[table_quota:] + other_pool)
+    selected += remaining[: max(0, limit - len(selected))]
+    return selected[:limit]
