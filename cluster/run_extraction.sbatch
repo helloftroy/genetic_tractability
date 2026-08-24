@@ -19,6 +19,14 @@
 #SBATCH --error=logs/extraction_%j.err
 
 set -euo pipefail
+
+# Real-time log visibility: SLURM redirects stdout to a file (not a TTY),
+# which switches Python's print() from line-buffered to block-buffered --
+# without this, logs/*.out can appear frozen for a long time even while
+# the job is actively working, since nothing gets flushed until a script
+# exits or its buffer fills. Confirmed as the actual explanation for a
+# real "is this stuck?" report during development.
+export PYTHONUNBUFFERED=1
 : "${SLURM_SUBMIT_DIR:?SLURM_SUBMIT_DIR is unset -- this script must be run via sbatch, not directly.}"
 cd "${SLURM_SUBMIT_DIR}"
 mkdir -p logs

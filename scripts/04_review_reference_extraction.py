@@ -28,7 +28,10 @@ def main() -> None:
     added = 0
     reviews_with_refs = 0
 
-    for review in reviews:
+    for i, review in enumerate(reviews, start=1):
+        if i % 10 == 0 or i == len(reviews):
+            print(f"  [{i}/{len(reviews)}] reviews processed (refs added so far: {added})", flush=True)
+            store.save()  # periodic checkpoint -- this loop can run long over ~150+ reviews
         source_id = epmc_source_for_paper(review)
         if not source_id:
             continue

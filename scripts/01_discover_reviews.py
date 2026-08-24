@@ -91,7 +91,9 @@ def main() -> None:
     seen_paper_ids = set(r["paper_id"] for r in review_rows)
     n_before = len(review_rows)
 
-    for topic in REVIEW_TOPICS:
+    for ti, topic in enumerate(REVIEW_TOPICS, start=1):
+        print(f"  [relevance/cited pass {ti}/{len(REVIEW_TOPICS)}] {topic!r} "
+              f"(reviews so far: {len(review_rows)})", flush=True)
         query = f'({topic}) AND (PUB_TYPE:"Review")'
         added_for_topic = 0
         for sort in SORT_PASSES:
@@ -135,10 +137,15 @@ def main() -> None:
                     })
                     added_for_topic += 1
 
+        write_csv_dicts(DATA_DIR / "review_seeds.csv", review_rows, REVIEW_SEED_FIELDNAMES)
+        store.save()  # checkpoint after every topic -- avoids losing a whole run to a mid-run crash/timeout
+
     # Explicit older-literature pass: pure relevance/citation ranking above
     # skewed heavily to 2025/2026 (recency bias in both), so force recall
     # of pre-2019 reviews per topic with an explicit year-range filter.
-    for topic in REVIEW_TOPICS:
+    for ti, topic in enumerate(REVIEW_TOPICS, start=1):
+        print(f"  [older-literature pass {ti}/{len(REVIEW_TOPICS)}] {topic!r} "
+              f"(reviews so far: {len(review_rows)})", flush=True)
         query = f'({topic}) AND (PUB_TYPE:"Review") AND (PUB_YEAR:[{OLD_YEAR_RANGE}])'
         records = epmc_search(query, max_results=FETCH_PER_TOPIC)
         added_for_topic = 0

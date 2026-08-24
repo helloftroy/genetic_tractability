@@ -47,8 +47,9 @@ def main() -> None:
     seen_this_run = set()
 
     context = " OR ".join(ORGANISM_CONTEXT_TERMS)
-    for phrase in FAILURE_PHRASES:
+    for i, phrase in enumerate(FAILURE_PHRASES, start=1):
         query = f"{phrase} AND ({context})"
+        print(f"  [{i}/{len(FAILURE_PHRASES)}] {phrase!r} (running total added: {added})", flush=True)
         records = epmc_search(query, max_results=PER_QUERY)
         for rec in records:
             parsed = parse_epmc_record(rec)
@@ -75,7 +76,8 @@ def main() -> None:
                 seen_this_run.add(paper_id)
                 added += 1
 
-    store.save()
+        store.save()  # checkpoint after every phrase -- cheap, avoids losing a whole run to a mid-run crash/timeout
+
     print(f"Negative-keyword route: {added} unique new/enriched candidate papers this run")
     print(f"candidate_papers.csv now has {len(store.all_rows())} rows")
 

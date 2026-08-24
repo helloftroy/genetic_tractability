@@ -43,7 +43,8 @@ def main() -> None:
     added = 0
     seen_this_run = set()
 
-    for query in BROAD_QUERIES:
+    for i, query in enumerate(BROAD_QUERIES, start=1):
+        print(f"  [{i}/{len(BROAD_QUERIES)}] {query!r} (running total added: {added})", flush=True)
         records = epmc_search(query, max_results=PER_QUERY)
         for rec in records:
             parsed = parse_epmc_record(rec)
@@ -70,7 +71,8 @@ def main() -> None:
                 seen_this_run.add(paper_id)
                 added += 1
 
-    store.save()
+        store.save()  # checkpoint after every query -- cheap (16 queries total), avoids losing a whole run to a mid-run crash/timeout
+
     print(f"Broad-keyword route: {added} unique new/enriched candidate papers this run")
     print(f"candidate_papers.csv now has {len(store.all_rows())} rows")
 
