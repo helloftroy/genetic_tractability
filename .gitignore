@@ -6,8 +6,15 @@ __pycache__/
 # HTTP response cache (regenerable via the pipeline; large, not meaningful diff content)
 data/cache/
 
-# Per-paper keyword-span packets (regenerable intermediate artifact between scripts 14 and 15)
-data/genetic_tractability/keyword_spans/
+# Pipeline data outputs: multiple environments (Mac, HPC2 cluster) run the
+# same discovery/extraction scripts against their own local copies of these
+# files, growing them independently -- git can't meaningfully merge two
+# independently-grown CSVs, so every cross-environment `git pull` on
+# candidate_papers.csv/review_seeds.csv/etc turned into a manual conflict
+# resolution. Not worth it: sync these with scp/rsync between environments
+# instead (see cluster/sync_local_data_to_cluster.sh for the Mac->cluster
+# direction), and keep git for code only.
+data/genetic_tractability/
 
 # Cluster-generated / machine-specific (mirrors fair_ocean_agent's cluster/ conventions)
 cluster/env_activate.sh
