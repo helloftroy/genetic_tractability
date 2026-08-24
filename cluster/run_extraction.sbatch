@@ -101,6 +101,9 @@ python3 15_llm_structured_extraction.py "${BATCH_SIZE}"
 echo "=== summary ==="
 python3 16_auto_summary_report.py
 
+echo "=== extraction stage complete ==="
+python3 17_data_state_report.py
+
 echo "Job finished: $(date)"
 echo "Next: submit cluster/run_genome_matching.sbatch to resolve genome accessions"
 echo "(needs internet again -- NCBI E-utilities -- so it's a separate CPU-side job)."

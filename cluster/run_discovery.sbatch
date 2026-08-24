@@ -80,13 +80,7 @@ echo "=== 11: clean HTML from title fields ==="
 python3 11_clean_titles.py
 
 echo "=== discovery stage complete ==="
-python3 - <<'PYEOF'
-import csv
-with open("../data/genetic_tractability/candidate_papers.csv") as f:
-    rows = list(csv.DictReader(f))
-print(f"candidate_papers.csv: {len(rows)} rows "
-      f"({sum(1 for r in rows if r['is_review']=='True')} reviews)")
-PYEOF
+python3 17_data_state_report.py
 
 echo "Job finished: $(date)"
 echo "Next: submit cluster/run_prefetch.sbatch (same repo checkout, same filesystem)."

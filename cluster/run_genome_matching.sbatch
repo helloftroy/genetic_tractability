@@ -36,5 +36,8 @@ echo "Job started: $(date)"
 cd scripts
 python3 09_genome_matching.py manipulation_observations_auto.csv genome_matches_auto.csv
 
+echo "=== genome matching stage complete ==="
+python3 17_data_state_report.py
+
 echo "Job finished: $(date)"
 echo "Results: data/genetic_tractability/genome_matches_auto.csv"
