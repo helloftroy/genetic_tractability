@@ -128,6 +128,8 @@ def main() -> None:
     n_records = 0
     n_unverified = 0
     n_papers_with_records = 0
+    consecutive_llm_failures = 0
+    MAX_CONSECUTIVE_LLM_FAILURES = 8  # circuit breaker -- see 13_triage_abstracts.py for the incident this fixes
 
     for i, entry in enumerate(candidates, start=1):
         paper_id = entry["paper_id"]
@@ -140,8 +142,20 @@ def main() -> None:
         try:
             raw = llm_client.chat(SYSTEM_PROMPT, user_prompt, max_tokens=1500)
             parsed = llm_client.extract_json(raw)
-        except llm_client.LLMError:
+            consecutive_llm_failures = 0
+        except llm_client.LLMError as e:
             parsed = None
+            consecutive_llm_failures += 1
+            print(f"  [extraction] LLM call failed for {paper_id} ({consecutive_llm_failures} in a row): {e}",
+                  flush=True)
+            if consecutive_llm_failures >= MAX_CONSECUTIVE_LLM_FAILURES:
+                write_csv_dicts(OUT_PATH, rows, OBS_FIELDNAMES)
+                print(f"FATAL: {consecutive_llm_failures} consecutive LLM failures -- the LLM server "
+                      f"({llm_client.DEFAULT_BASE_URL}) is very likely down or wedged. Stopping rather than "
+                      f"silently retrying for the rest of the job's walltime. Checkpointed {len(rows)} rows "
+                      f"to {OUT_PATH.name}; re-run this batch after confirming the server is healthy.",
+                      flush=True)
+                sys.exit(1)
 
         if not isinstance(parsed, list):
             continue

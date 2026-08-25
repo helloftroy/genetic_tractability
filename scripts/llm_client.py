@@ -77,6 +77,15 @@ def chat(
             return data["choices"][0]["message"]["content"]
         except Exception as e:  # noqa: BLE001 -- surfaced via LLMError below
             last_err = e
+            # Printed here (not just raised) because a caller that catches
+            # LLMError and silently falls back (scripts 13/15 both do, to
+            # keep one bad paper from killing a whole batch) would
+            # otherwise produce zero log output on failure -- confirmed as
+            # the real explanation for a job that looked "stopped" with an
+            # empty .err: the LLM server was actually failing/timing out on
+            # every call, each one retried silently for minutes, with
+            # nothing ever printed to say why.
+            print(f"  [llm_client] attempt {attempt + 1}/{retries + 1} failed: {e}", flush=True)
             time.sleep(1.0 * (attempt + 1))
     raise LLMError(f"LLM call failed after {retries + 1} attempts: {last_err}")
 

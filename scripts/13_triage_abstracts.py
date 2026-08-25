@@ -54,6 +54,8 @@ def main() -> None:
 
     rows = read_csv_dicts(DATA_DIR / "abstract_triage.csv")
     n_yes = n_no = n_maybe = n_skipped = 0
+    consecutive_llm_failures = 0
+    MAX_CONSECUTIVE_LLM_FAILURES = 8  # circuit breaker -- see module docstring note below
 
     for i, paper in enumerate(batch, start=1):
         rec = epmc_lookup_record(paper.get("doi", ""), paper.get("pmid", ""), paper.get("title", ""))
@@ -69,8 +71,29 @@ def main() -> None:
         try:
             raw = llm_client.chat(SYSTEM_PROMPT, user, max_tokens=80)
             parsed = llm_client.extract_json(raw)
+            consecutive_llm_failures = 0
         except llm_client.LLMError as e:
             parsed = None
+            consecutive_llm_failures += 1
+            print(f"  [triage] LLM call failed for {paper['paper_id']} ({consecutive_llm_failures} in a row): {e}",
+                  flush=True)
+            if consecutive_llm_failures >= MAX_CONSECUTIVE_LLM_FAILURES:
+                # Without this, a degraded/unresponsive LLM server (e.g. vLLM
+                # wedged after many requests) makes every remaining call in
+                # the batch retry-and-fail for minutes each, invisible in the
+                # log beyond this point, for the rest of the job's walltime --
+                # confirmed as the real explanation for a job that looked
+                # "stopped" partway through with an empty .err. Failing loudly
+                # and stopping here (after checkpointing what's done) turns
+                # an hours-long silent stall into an immediately diagnosable
+                # error with a real non-zero exit code in `sacct`.
+                write_csv_dicts(DATA_DIR / "abstract_triage.csv", rows, TRIAGE_FIELDNAMES)
+                print(f"FATAL: {consecutive_llm_failures} consecutive LLM failures -- the LLM server "
+                      f"({llm_client.DEFAULT_BASE_URL}) is very likely down or wedged. Stopping rather than "
+                      f"silently retrying for the rest of the job's walltime. Checkpointed {len(rows)} rows "
+                      f"to abstract_triage.csv; re-run this batch after confirming the server is healthy.",
+                      flush=True)
+                sys.exit(1)
         if isinstance(parsed, dict) and parsed.get("decision") in ("yes", "no", "maybe"):
             decision = parsed["decision"]
             reason = str(parsed.get("reason", ""))[:150]

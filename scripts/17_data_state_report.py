@@ -14,7 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from common import DATA_DIR
+from common import DATA_DIR, read_csv_dicts
 
 FILES = [
     "candidate_papers.csv",
@@ -61,9 +61,40 @@ def main() -> None:
         print(f"  {name:<42} {n:>7} rows  {size:>8}  modified {mtime}")
 
     spans_dir = DATA_DIR / "keyword_spans"
+    n_spans = sum(1 for _ in spans_dir.glob("*.json")) if spans_dir.exists() else 0
     if spans_dir.exists():
-        n_spans = sum(1 for _ in spans_dir.glob("*.json"))
         print(f"  {'keyword_spans/ (packet count)':<42} {n_spans:>7} files")
+    print("=" * 72)
+
+    print_backlog(n_spans)
+
+
+def print_backlog(n_spans: int) -> None:
+    """Queue depth at each stage boundary -- directly answers 'how much is
+    already fetched/waiting but not yet processed by the next stage',
+    independent of what any single job's log happened to show."""
+    papers = read_csv_dicts(DATA_DIR / "candidate_papers.csv")
+    n_candidates = sum(1 for p in papers if p.get("is_review") != "True")
+
+    triage = read_csv_dicts(DATA_DIR / "abstract_triage.csv")
+    n_triaged = len(triage)
+    n_triaged_yes_maybe = sum(1 for t in triage if t.get("decision") in ("yes", "maybe"))
+
+    spans_index = read_csv_dicts(DATA_DIR / "keyword_spans_index.csv")
+    n_spans_with_signal = sum(1 for r in spans_index if r.get("has_signal") == "True")
+
+    n_extracted = len(set(r["paper_id"] for r in read_csv_dicts(DATA_DIR / "manipulation_observations_auto.csv")))
+
+    print("PIPELINE BACKLOG (queue depth at each stage boundary)")
+    print("-" * 72)
+    print(f"  Candidates discovered (non-review):        {n_candidates:>8}")
+    print(f"  Triaged so far:                             {n_triaged:>8}  "
+          f"(backlog: {max(0, n_candidates - n_triaged):>8} not yet triaged)")
+    print(f"  Triaged yes/maybe (want keyword spans):     {n_triaged_yes_maybe:>8}  "
+          f"(backlog: {max(0, n_triaged_yes_maybe - n_spans):>8} triaged but no packet yet)")
+    print(f"  Keyword-span packets with real signal:      {n_spans_with_signal:>8}  "
+          f"(backlog: {max(0, n_spans_with_signal - n_extracted):>8} have signal but not yet extracted)")
+    print(f"  Papers with extracted observations:         {n_extracted:>8}")
     print("=" * 72)
 
 
