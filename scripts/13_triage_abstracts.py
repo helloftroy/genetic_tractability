@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import llm_client
 from batch_selection import select_triage_batch
-from common import DATA_DIR, epmc_lookup_record, read_csv_dicts, write_csv_dicts
+from common import DATA_DIR, cache_only_miss_count, epmc_lookup_record, read_csv_dicts, write_csv_dicts
 
 TRIAGE_FIELDNAMES = ["paper_id", "title", "decision", "reason", "abstract_available"]
 
@@ -93,6 +93,11 @@ def main() -> None:
     write_csv_dicts(DATA_DIR / "abstract_triage.csv", rows, TRIAGE_FIELDNAMES)
     print(f"Done. yes={n_yes} no={n_no} maybe={n_maybe} skipped_no_abstract={n_skipped}")
     print(f"Wrote {DATA_DIR / 'abstract_triage.csv'} ({len(rows)} total rows)")
+    miss_count = cache_only_miss_count()
+    if miss_count:
+        print(f"WARNING: {miss_count} lookups were cache misses (GENETIC_TRACTABILITY_CACHE_ONLY=1 -- "
+              f"skipped instantly rather than hitting the network). This batch was not fully warmed by "
+              f"run_prefetch.sbatch -- re-run it with the SAME BATCH_SIZE before extraction to cover these.")
 
 
 if __name__ == "__main__":

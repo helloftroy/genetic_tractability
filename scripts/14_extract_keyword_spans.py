@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from common import DATA_DIR, epmc_fulltext_xml, epmc_lookup_record, read_csv_dicts, write_csv_dicts
+from common import DATA_DIR, cache_only_miss_count, epmc_fulltext_xml, epmc_lookup_record, read_csv_dicts, write_csv_dicts
 from keyword_lexicon import find_accessions, find_culture_collection_strains, tag_sentence
 from text_sections import sentences_for_paper
 
@@ -127,6 +127,11 @@ def main() -> None:
 
     print(f"Done. {len(index_rows)} packets built this run, {n_with_signal} with real manipulation+outcome/strain signal.")
     print(f"Wrote {SPANS_DIR}/*.json and {DATA_DIR / 'keyword_spans_index.csv'}")
+    miss_count = cache_only_miss_count()
+    if miss_count:
+        print(f"WARNING: {miss_count} lookups were cache misses (GENETIC_TRACTABILITY_CACHE_ONLY=1 -- "
+              f"skipped instantly rather than hitting the network). This batch was not fully warmed by "
+              f"run_prefetch.sbatch -- re-run it with the SAME BATCH_SIZE before extraction to cover these.")
 
 
 if __name__ == "__main__":

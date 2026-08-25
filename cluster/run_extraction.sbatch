@@ -84,6 +84,16 @@ fi
 export GENETIC_TRACTABILITY_LLM_BASE_URL="http://localhost:8000/v1"
 export GENETIC_TRACTABILITY_LLM_MODEL="${MODEL}"
 
+# This node has no internet access -- that is the entire reason
+# run_prefetch.sbatch exists. Without this, a paper that was not actually
+# warmed by a matching run_prefetch.sbatch run silently burns ~90s+ per
+# lookup retrying a network call that can never succeed here, which is
+# indistinguishable from a hang until you notice the log crawling.
+# Confirmed live: this exact failure mode turned 20 papers into 45 minutes.
+# With this set, an under-prefetched batch instead fails INSTANTLY per
+# lookup and scripts 13/14 print a clear WARNING with the miss count.
+export GENETIC_TRACTABILITY_CACHE_ONLY=1
+
 BATCH_SIZE="${BATCH_SIZE:-350}"
 echo "Batch size: ${BATCH_SIZE} (must match what run_prefetch.sbatch was given)"
 

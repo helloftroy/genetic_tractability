@@ -67,13 +67,35 @@ def _cache_path(url: str) -> Path:
     return CACHE_DIR / f"{key}.json"
 
 
+# The GPU/vLLM cluster stage (run_extraction.sbatch) deliberately runs with
+# no internet access -- that's the whole point of run_prefetch.sbatch
+# warming the cache first. But scripts 13/14 call the same
+# epmc_lookup_record()/epmc_fulltext_xml() functions regardless of which
+# stage is running, so if a paper's batch was never actually prefetched
+# (e.g. a later run_extraction.sbatch was submitted with a bigger
+# BATCH_SIZE, or against a candidate pool that grew, without a matching
+# run_prefetch.sbatch run first), a cache miss here silently burns through
+# 3 retries x 30s timeout each (~90s+) before giving up -- confirmed live:
+# a real run spent ~45 minutes on 20 papers, 18 of them "no abstract"
+# (really just a cache miss timing out, not Europe PMC lacking an
+# abstract). run_extraction.sbatch sets this env var so a cache miss there
+# fails INSTANTLY instead of hanging, turning an hours-long silent stall
+# into an immediately visible, correctly-labeled skip.
+CACHE_ONLY = os.environ.get("GENETIC_TRACTABILITY_CACHE_ONLY", "") == "1"
+_cache_only_misses = 0
+
+
 def cached_get_json(url: str, host_key: str, retries: int = 3) -> Optional[dict]:
+    global _cache_only_misses
     cache_path = _cache_path(url)
     if cache_path.exists():
         try:
             return json.loads(cache_path.read_text())
         except Exception:
             pass
+    if CACHE_ONLY:
+        _cache_only_misses += 1
+        return None
     for attempt in range(retries):
         _throttle(host_key)
         try:
@@ -90,10 +112,22 @@ def cached_get_json(url: str, host_key: str, retries: int = 3) -> Optional[dict]
     return None
 
 
+def cache_only_miss_count() -> int:
+    """How many URLs were skipped (not fetched) because CACHE_ONLY is set
+    and they weren't already warm -- call this at the end of a script and
+    print it, so an under-prefetched batch is immediately visible instead
+    of silently showing up as a pile of "no abstract available" rows."""
+    return _cache_only_misses
+
+
 def cached_get_text(url: str, host_key: str, retries: int = 3) -> Optional[str]:
+    global _cache_only_misses
     cache_key = _cache_path(url).with_suffix(".txt")
     if cache_key.exists():
         return cache_key.read_text()
+    if CACHE_ONLY:
+        _cache_only_misses += 1
+        return None
     for attempt in range(retries):
         _throttle(host_key)
         try:
