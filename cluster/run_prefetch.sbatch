@@ -46,6 +46,20 @@ BATCH_SIZE="${BATCH_SIZE:-350}"
 echo "Batch size: ${BATCH_SIZE}"
 
 cd scripts
+
+# Heal "forced maybe" rows first (paper_ids whose abstract lookup failed at
+# triage time, e.g. during an earlier under-prefetched run_extraction.sbatch
+# pass) -- these are permanently stuck otherwise, since select_triage_batch()
+# excludes anything already in abstract_triage.csv forever, including from
+# future prefetch batches. This needs real internet, so it belongs here, not
+# on the GPU node. Set RETRY_FORCED_MAYBE=0 to skip if you know this backlog
+# is already clean and want a slightly faster prefetch run.
+if [ "${RETRY_FORCED_MAYBE:-1}" != "0" ]; then
+  echo "=== healing forced-maybe (failed-lookup) triage rows ==="
+  python3 20_retry_forced_maybe.py
+fi
+
+echo "=== prefetching new batch ==="
 python3 12b_prefetch_llm_batch.py "${BATCH_SIZE}"
 
 echo "=== prefetch stage complete ==="
