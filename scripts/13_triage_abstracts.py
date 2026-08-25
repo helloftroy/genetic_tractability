@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import llm_client
 from batch_selection import select_triage_batch
-from common import DATA_DIR, cache_only_miss_count, epmc_lookup_record, read_csv_dicts, write_csv_dicts
+from common import DATA_DIR, cache_only_miss_count, epmc_lookup_record, locked_merge_write_csv, read_csv_dicts
 
 TRIAGE_FIELDNAMES = ["paper_id", "title", "decision", "reason", "abstract_available"]
 
@@ -52,7 +52,13 @@ def main() -> None:
     batch = select_triage_batch(limit)
     print(f"Triaging {len(batch)} papers (qwen abstract-only screen)...")
 
-    rows = read_csv_dicts(DATA_DIR / "abstract_triage.csv")
+    # Tracks only rows this session has decided, NOT a snapshot of the
+    # whole file -- abstract_triage.csv can be concurrently modified by
+    # script 20 (removing healed rows) while this runs, so every write
+    # below merges these new_rows against a FRESH read of the file
+    # (locked_merge_write_csv), never blindly overwriting with a stale
+    # in-memory copy of the file as it looked when this run started.
+    new_rows: list[dict] = []
     n_yes = n_no = n_maybe = n_skipped = 0
     consecutive_llm_failures = 0
     MAX_CONSECUTIVE_LLM_FAILURES = 8  # circuit breaker -- see module docstring note below
@@ -62,8 +68,8 @@ def main() -> None:
         abstract = (rec or {}).get("abstract", "")
         title = paper.get("title", "")
         if not abstract:
-            rows.append({"paper_id": paper["paper_id"], "title": title, "decision": "maybe",
-                         "reason": "no abstract text available", "abstract_available": "False"})
+            new_rows.append({"paper_id": paper["paper_id"], "title": title, "decision": "maybe",
+                              "reason": "no abstract text available", "abstract_available": "False"})
             n_skipped += 1
             continue
 
@@ -87,11 +93,11 @@ def main() -> None:
                 # and stopping here (after checkpointing what's done) turns
                 # an hours-long silent stall into an immediately diagnosable
                 # error with a real non-zero exit code in `sacct`.
-                write_csv_dicts(DATA_DIR / "abstract_triage.csv", rows, TRIAGE_FIELDNAMES)
+                locked_merge_write_csv(DATA_DIR / "abstract_triage.csv", TRIAGE_FIELDNAMES, upsert_rows=new_rows)
                 print(f"FATAL: {consecutive_llm_failures} consecutive LLM failures -- the LLM server "
                       f"({llm_client.DEFAULT_BASE_URL}) is very likely down or wedged. Stopping rather than "
-                      f"silently retrying for the rest of the job's walltime. Checkpointed {len(rows)} rows "
-                      f"to abstract_triage.csv; re-run this batch after confirming the server is healthy.",
+                      f"silently retrying for the rest of the job's walltime. Checkpointed {len(new_rows)} new "
+                      f"rows to abstract_triage.csv; re-run this batch after confirming the server is healthy.",
                       flush=True)
                 sys.exit(1)
         if isinstance(parsed, dict) and parsed.get("decision") in ("yes", "no", "maybe"):
@@ -100,8 +106,8 @@ def main() -> None:
         else:
             decision, reason = "maybe", "LLM output unparseable, defaulting to maybe"
 
-        rows.append({"paper_id": paper["paper_id"], "title": title, "decision": decision,
-                     "reason": reason, "abstract_available": "True"})
+        new_rows.append({"paper_id": paper["paper_id"], "title": title, "decision": decision,
+                          "reason": reason, "abstract_available": "True"})
         if decision == "yes":
             n_yes += 1
         elif decision == "no":
@@ -110,12 +116,13 @@ def main() -> None:
             n_maybe += 1
 
         if i % 20 == 0:
-            write_csv_dicts(DATA_DIR / "abstract_triage.csv", rows, TRIAGE_FIELDNAMES)
+            locked_merge_write_csv(DATA_DIR / "abstract_triage.csv", TRIAGE_FIELDNAMES, upsert_rows=new_rows)
             print(f"  ...{i}/{len(batch)} (yes={n_yes} no={n_no} maybe={n_maybe} skipped={n_skipped})")
 
-    write_csv_dicts(DATA_DIR / "abstract_triage.csv", rows, TRIAGE_FIELDNAMES)
+    locked_merge_write_csv(DATA_DIR / "abstract_triage.csv", TRIAGE_FIELDNAMES, upsert_rows=new_rows)
+    total_rows = len(read_csv_dicts(DATA_DIR / "abstract_triage.csv"))
     print(f"Done. yes={n_yes} no={n_no} maybe={n_maybe} skipped_no_abstract={n_skipped}")
-    print(f"Wrote {DATA_DIR / 'abstract_triage.csv'} ({len(rows)} total rows)")
+    print(f"Wrote {DATA_DIR / 'abstract_triage.csv'} ({len(new_rows)} new rows this run, {total_rows} total)")
     miss_count = cache_only_miss_count()
     if miss_count:
         print(f"WARNING: {miss_count} lookups were cache misses (GENETIC_TRACTABILITY_CACHE_ONLY=1 -- "

@@ -335,6 +335,51 @@ def write_csv_dicts(path: Path, rows: List[dict], fieldnames: List[str]) -> None
             writer.writerow({k: row.get(k, "") for k in fieldnames})
 
 
+def locked_merge_write_csv(
+    path: Path,
+    fieldnames: List[str],
+    key: str = "paper_id",
+    upsert_rows: Optional[List[dict]] = None,
+    remove_ids: Optional[Iterable[str]] = None,
+) -> None:
+    """Safely applies an add/replace-by-key and/or remove-by-key update to
+    a shared CSV, re-reading the file fresh under an exclusive lock right
+    before merging -- NOT against a long-held in-memory snapshot from
+    earlier in the caller's run.
+
+    Exists because abstract_triage.csv is written by two different
+    processes that can legitimately run at the same time (script 13,
+    adding new triage decisions, and script 20, removing healed rows) --
+    each blindly overwriting the whole file from its own stale snapshot
+    would silently discard whatever the other one had just written (a
+    lost-update race, confirmed as a real risk once script 20 started
+    writing to the same file script 13 does). Every writer of a
+    concurrently-shared pipeline CSV should go through this, not
+    write_csv_dicts() directly.
+
+    fcntl.flock is POSIX-only (fine here: Mac + Linux HPC, no Windows
+    target for this project).
+    """
+    import fcntl
+
+    upsert_rows = upsert_rows or []
+    remove_ids = set(remove_ids or [])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = path.with_suffix(path.suffix + ".lock")
+    lock_path.touch(exist_ok=True)
+    with open(lock_path, "r+") as lockfile:
+        fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
+        try:
+            current = {r[key]: r for r in read_csv_dicts(path) if key in r}
+            for row in upsert_rows:
+                current[row[key]] = row
+            for rid in remove_ids:
+                current.pop(rid, None)
+            write_csv_dicts(path, list(current.values()), fieldnames)
+        finally:
+            fcntl.flock(lockfile.fileno(), fcntl.LOCK_UN)
+
+
 def parse_epmc_record(rec: dict) -> dict:
     """Flatten an Europe PMC core-result record into our candidate-paper shape."""
     author_list = rec.get("authorList", {}).get("author", [])
