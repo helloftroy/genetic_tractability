@@ -50,6 +50,7 @@ python3 12b_prefetch_llm_batch.py "${BATCH_SIZE}"
 
 echo "=== prefetch stage complete ==="
 python3 17_data_state_report.py
+python3 19_cache_readiness_report.py
 
 echo "Job finished: $(date)"
 echo "Next: submit cluster/run_extraction.sbatch (GPU, LLM_BACKEND=vllm) with the same BATCH_SIZE."

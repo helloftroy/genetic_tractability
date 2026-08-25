@@ -59,3 +59,6 @@ if [ -f cluster/env_activate.sh ]; then
   source cluster/env_activate.sh
 fi
 (cd scripts && python3 17_data_state_report.py) 2>&1 || echo "(state report failed -- check the python environment is activated)"
+
+echo
+(cd scripts && python3 19_cache_readiness_report.py) 2>&1 || echo "(cache readiness report failed -- check the python environment is activated)"

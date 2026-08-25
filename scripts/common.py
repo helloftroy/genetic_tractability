@@ -197,13 +197,15 @@ def epmc_references(source: str, ext_id: str, max_results: int = 600) -> List[di
     return refs[:max_results]
 
 
+def epmc_fulltext_url(pmcid: str) -> str:
+    return f"{EPMC_BASE}/{pmcid}/fullTextXML"
+
+
 def epmc_fulltext_xml(pmcid: str) -> Optional[str]:
-    url = f"{EPMC_BASE}/{pmcid}/fullTextXML"
-    return cached_get_text(url, "epmc")
+    return cached_get_text(epmc_fulltext_url(pmcid), "epmc")
 
 
-def epmc_lookup_record(doi: str = "", pmid: str = "", title: str = "") -> Optional[dict]:
-    """Fetch one full Europe PMC core record (title/abstract/OA status/pmcid/...)."""
+def epmc_lookup_url(doi: str = "", pmid: str = "", title: str = "") -> Optional[str]:
     if doi:
         query = f'DOI:"{normalize_doi(doi)}"'
     elif pmid:
@@ -212,7 +214,14 @@ def epmc_lookup_record(doi: str = "", pmid: str = "", title: str = "") -> Option
         query = f'TITLE:"{title}"'
     else:
         return None
-    url = f"{EPMC_BASE}/search?{urllib.parse.urlencode({'query': query, 'format': 'json', 'resultType': 'core', 'pageSize': 1})}"
+    return f"{EPMC_BASE}/search?{urllib.parse.urlencode({'query': query, 'format': 'json', 'resultType': 'core', 'pageSize': 1})}"
+
+
+def epmc_lookup_record(doi: str = "", pmid: str = "", title: str = "") -> Optional[dict]:
+    """Fetch one full Europe PMC core record (title/abstract/OA status/pmcid/...)."""
+    url = epmc_lookup_url(doi, pmid, title)
+    if not url:
+        return None
     data = cached_get_json(url, "epmc")
     if not data:
         return None
@@ -220,6 +229,19 @@ def epmc_lookup_record(doi: str = "", pmid: str = "", title: str = "") -> Option
     if not results:
         return None
     return parse_epmc_record(results[0])
+
+
+def is_cached(url: Optional[str], kind: str = "json") -> bool:
+    """Checks whether a URL is already warm in the on-disk cache, WITHOUT
+    making any network call or touching CACHE_ONLY's miss counter -- for
+    reporting/auditing "how much of the pending backlog is already
+    fetched" without attempting to fetch anything."""
+    if not url:
+        return False
+    path = _cache_path(url)
+    if kind == "text":
+        path = path.with_suffix(".txt")
+    return path.exists()
 
 
 # ---------------------------------------------------------------------------
