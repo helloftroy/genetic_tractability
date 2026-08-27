@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from common import DATA_DIR, cache_only_miss_count, epmc_fulltext_xml, epmc_lookup_record, read_csv_dicts, write_csv_dicts
+from common import DATA_DIR, cache_only_miss_count, epmc_fulltext_xml, epmc_lookup_record, locked_merge_write_csv, read_csv_dicts
 from keyword_lexicon import find_accessions, find_culture_collection_strains, tag_sentence
 from text_sections import sentences_for_paper
 
@@ -119,11 +119,17 @@ def main() -> None:
 
         if i % 25 == 0:
             print(f"  ...{i}/{len(to_process)} (with_signal={n_with_signal})")
+            # Each packet .json is already durable (written above, per paper),
+            # but this index is what script 15 and the backlog reports
+            # actually read -- without a periodic checkpoint here, a job
+            # killed mid-run (e.g. hitting --time) leaves real packets on
+            # disk that are invisible to the rest of the pipeline until this
+            # index catches up. Confirmed as a real gap after a job cut out
+            # mid-run. locked_merge_write_csv so this is also safe if two
+            # extraction runs ever overlap.
+            locked_merge_write_csv(DATA_DIR / "keyword_spans_index.csv", INDEX_FIELDNAMES, upsert_rows=index_rows)
 
-    existing_index = read_csv_dicts(DATA_DIR / "keyword_spans_index.csv")
-    existing_ids = set(r["paper_id"] for r in existing_index)
-    combined = existing_index + [r for r in index_rows if r["paper_id"] not in existing_ids]
-    write_csv_dicts(DATA_DIR / "keyword_spans_index.csv", combined, INDEX_FIELDNAMES)
+    locked_merge_write_csv(DATA_DIR / "keyword_spans_index.csv", INDEX_FIELDNAMES, upsert_rows=index_rows)
 
     print(f"Done. {len(index_rows)} packets built this run, {n_with_signal} with real manipulation+outcome/strain signal.")
     print(f"Wrote {SPANS_DIR}/*.json and {DATA_DIR / 'keyword_spans_index.csv'}")
