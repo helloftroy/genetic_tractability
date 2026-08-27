@@ -8,7 +8,7 @@
 #SBATCH --partition=service
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
-#SBATCH --time=04:00:00
+#SBATCH --time=48:00:00
 #SBATCH --output=logs/genome_matching_%j.out
 #SBATCH --error=logs/genome_matching_%j.err
 

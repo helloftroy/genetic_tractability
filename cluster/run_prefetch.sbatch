@@ -15,7 +15,7 @@
 #SBATCH --partition=service
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
-#SBATCH --time=06:00:00
+#SBATCH --time=48:00:00
 #SBATCH --output=logs/prefetch_%j.out
 #SBATCH --error=logs/prefetch_%j.err
 

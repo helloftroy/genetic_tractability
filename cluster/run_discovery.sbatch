@@ -27,7 +27,7 @@
 #SBATCH --partition=service
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
-#SBATCH --time=12:00:00
+#SBATCH --time=48:00:00
 #SBATCH --output=logs/discovery_%j.out
 #SBATCH --error=logs/discovery_%j.err
 
