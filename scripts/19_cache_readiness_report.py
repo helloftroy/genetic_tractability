@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Answers "how much of the pending backlog is already fetched (cached)
-and ready to process without touching the network" -- distinct from the
-PIPELINE BACKLOG section of 17_data_state_report.py, which shows how far
+and ready to process without touching the network" -- distinct from
+17_data_state_report.py's per-stage backlog numbers, which show how far
 each paper has gotten through *processing*, not whether its abstract/full
 text is actually sitting in data/cache/ already.
 
@@ -104,8 +104,8 @@ def main() -> None:
     print("Note: 'ready to extract' in the everyday sense (script 15, the LLM")
     print("structuring step) doesn't need any network at all -- it only reads")
     print("local keyword_spans/*.json packets. See 17_data_state_report.py's")
-    print("PIPELINE BACKLOG section for that count (\"have signal but not yet")
-    print("extracted\").")
+    print("STAGE 4 backlog line for that count (\"papers have real signal but")
+    print("haven't been LLM-extracted yet\").")
 
 
 if __name__ == "__main__":
