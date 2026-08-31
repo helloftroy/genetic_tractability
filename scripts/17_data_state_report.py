@@ -81,14 +81,27 @@ def main() -> None:
     n_maybe_rows = [t for t in triage if t.get("decision") == "maybe"]
     n_maybe = len(n_maybe_rows)
     n_forced_maybe = sum(1 for t in n_maybe_rows if t.get("abstract_available") == "False")
-    n_triaged_yes_maybe = n_yes + n_maybe
+    n_genuine_maybe = n_maybe - n_forced_maybe
+    # Script 14 additionally requires abstract_available=="True" (it has
+    # nothing to tag otherwise) -- "yes"/"no" always have an abstract by
+    # construction (script 13 can only reach those decisions after reading
+    # one), but "maybe" can be either genuine ambiguity (has an abstract)
+    # or a forced default from a failed lookup (does NOT). Counting forced
+    # rows as part of the stage-3 backlog was a real bug: it made the
+    # backlog look unchanged after a real run_extraction.sbatch pass,
+    # because those rows can never be processed by script 14 until healed
+    # (run_prefetch.sbatch) -- confirmed live as the explanation for a
+    # "the output is the same after I ran it!" report.
+    n_processable_yes_maybe = n_yes + n_genuine_maybe
     if triage_path.exists():
         print(file_line(triage_path, n_triaged))
         print(f"      -> yes:   {n_yes:>7}  (likely relevant -- proceeds to keyword-span tagging)")
         print(f"      -> no:    {n_no:>7}  (likely NOT relevant -- stops here, not evidence)")
-        print(f"      -> maybe: {n_maybe:>7}  (ambiguous content OR abstract lookup failed -- also proceeds)")
-        print(f"                   of which {n_forced_maybe} are \"maybe\" only because the abstract lookup "
-              f"failed (not genuine ambiguity) -- see script 20 / run_prefetch.sbatch's healing step")
+        print(f"      -> maybe: {n_maybe:>7}  (ambiguous content OR abstract lookup failed -- also proceeds "
+              f"IF it has an abstract)")
+        print(f"                   {n_genuine_maybe} genuinely ambiguous (has an abstract, processable)")
+        print(f"                   {n_forced_maybe} forced default from a FAILED abstract lookup (NOT "
+              f"processable until healed -- run_prefetch.sbatch's healing step, script 20)")
         untriaged = max(0, n_candidates - n_triaged)
         print(f"      backlog: {untriaged} primary papers not yet triaged")
     else:
@@ -110,8 +123,12 @@ def main() -> None:
               f"language -- ready for LLM extraction)")
         print(f"      -> without real signal: {n_spans_no_signal:>7}  (keyword-tagged but nothing looked "
               f"like a real attempt -- dead end, not sent to the LLM)")
-        span_backlog = max(0, n_triaged_yes_maybe - n_spans)
-        print(f"      backlog: {span_backlog} triaged yes/maybe papers still waiting for this stage")
+        span_backlog = max(0, n_processable_yes_maybe - n_spans)
+        print(f"      backlog: {span_backlog} triaged yes/maybe papers (with an abstract) still waiting "
+              f"for this stage")
+        if n_forced_maybe > 0:
+            print(f"      ({n_forced_maybe} forced-maybe papers are separately stuck -- not counted here, "
+                  f"not processable until healed)")
     else:
         print("    keyword_spans_index.csv                (not yet created)")
 
@@ -156,6 +173,12 @@ def main() -> None:
             next_steps.append(
                 f"run_extraction.sbatch (BATCH_SIZE={combined_backlog}) -- covers all three stage backlogs "
                 f"in one job ({', '.join(parts)}); no prefetch needed, nothing untriaged")
+
+    if n_forced_maybe > 0:
+        next_steps.append(
+            f"run_prefetch.sbatch (its healing step, script 20, runs automatically) to retry the "
+            f"{n_forced_maybe} forced-maybe papers stuck with a failed abstract lookup -- these will NOT "
+            f"be touched by run_extraction.sbatch no matter how large a BATCH_SIZE you give it")
 
     # ---------------- Stage 5: genome matching ----------------
     print()
