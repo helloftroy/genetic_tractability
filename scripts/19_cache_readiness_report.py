@@ -17,7 +17,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from common import DATA_DIR, epmc_fulltext_url, epmc_lookup_url, is_cached, read_csv_dicts
+from common import (
+    DATA_DIR, OPENALEX_BASE, epmc_fulltext_url, epmc_lookup_url, is_cached, normalize_doi,
+    peek_cached_json, read_csv_dicts,
+)
 
 
 def main() -> None:
@@ -51,10 +54,27 @@ def main() -> None:
         return is_cached(url, "json")
 
     def fulltext_cached(pid: str) -> bool:
+        """True if EITHER the PMC full-text XML OR the OpenAlex PDF
+        fallback is already cached -- script 14 accepts either. The PDF
+        side can't be checked via a URL built purely from doi/pmid (the
+        PDF's own cache key depends on OpenAlex's resolved pdf_url, only
+        knowable from an already-cached OpenAlex lookup response) --
+        peek_cached_json reads that response from disk with zero network
+        calls, matching this whole report's zero-network guarantee."""
         p = papers.get(pid)
-        if not p or not p.get("pmcid"):
+        if not p:
             return False
-        return is_cached(epmc_fulltext_url(p["pmcid"]), "text")
+        if p.get("pmcid") and is_cached(epmc_fulltext_url(p["pmcid"]), "text"):
+            return True
+        doi = p.get("doi", "")
+        if not doi:
+            return False
+        openalex_data = peek_cached_json(f"{OPENALEX_BASE}/works/https://doi.org/{normalize_doi(doi)}")
+        if not openalex_data:
+            return False
+        best_oa = openalex_data.get("best_oa_location") or {}
+        pdf_url = best_oa.get("pdf_url") if best_oa.get("is_oa") else None
+        return bool(pdf_url and is_cached(pdf_url, "pdf"))
 
     def is_open_access(pid: str) -> bool:
         p = papers.get(pid)
@@ -97,9 +117,13 @@ def main() -> None:
 
     n_oa = sum(1 for pid in awaiting_spans_ids if is_open_access(pid))
     n_not_oa = n2 - n_oa
-    print(f"Of those {n2}: {n_oa} are open access (full text is fetchable in principle), "
-          f"{n_not_oa} are NOT open access (full text will never be fetched -- paywalled content "
-          f"is never touched, by design -- these will permanently stay abstract-only, and that's expected).")
+    print(f"Of those {n2}: {n_oa} are marked open access by Europe PMC (full text fetchable via PMC), "
+          f"{n_not_oa} are NOT marked open access by Europe PMC.")
+    print(f"  NOTE: 'not open access per Europe PMC' is NOT the same as 'unfetchable' -- script 14 also")
+    print(f"  tries an OpenAlex open-access-PDF fallback (broader OA detection, catches papers hosted on a")
+    print(f"  publisher's own site/preprint server/repository that never went through PMC at all). Whether")
+    print(f"  THAT resolves for these {n_not_oa} papers isn't knowable without querying OpenAlex (a real")
+    print(f"  network call, which this report deliberately never makes) -- run_prefetch.sbatch will find out.")
     print("=" * 72)
     print("Note: 'ready to extract' in the everyday sense (script 15, the LLM")
     print("structuring step) doesn't need any network at all -- it only reads")

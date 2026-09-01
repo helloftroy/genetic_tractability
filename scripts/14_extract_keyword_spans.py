@@ -18,7 +18,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from common import DATA_DIR, cache_only_miss_count, epmc_fulltext_xml, epmc_lookup_record, locked_merge_write_csv, read_csv_dicts
+from common import (
+    DATA_DIR, cache_only_miss_count, cached_get_binary, epmc_fulltext_xml, epmc_lookup_record,
+    locked_merge_write_csv, openalex_best_oa_pdf_url, pdf_bytes_to_text, read_csv_dicts,
+)
 from keyword_lexicon import find_accessions, find_culture_collection_strains, tag_sentence
 from text_sections import sentences_for_paper
 
@@ -36,8 +39,8 @@ INDEX_FIELDNAMES = [
 ]
 
 
-def build_packet(paper_id: str, title: str, abstract: str, jats_xml: str | None) -> dict:
-    sentences, source = sentences_for_paper(abstract, jats_xml)
+def build_packet(paper_id: str, title: str, abstract: str, jats_xml: str | None, pdf_text: str | None = None) -> dict:
+    sentences, source = sentences_for_paper(abstract, jats_xml, pdf_text)
     full_text = " ".join(s for _, _, s in sentences)
 
     by_category: dict[str, list[dict]] = {cat: [] for cat in PRIORITY_CATEGORIES}
@@ -95,7 +98,24 @@ def main() -> None:
             continue
         jats_xml = epmc_fulltext_xml(rec["pmcid"]) if rec.get("is_open_access") and rec.get("pmcid") else None
 
-        packet = build_packet(paper_id, rec.get("title") or paper.get("title", ""), rec.get("abstract", ""), jats_xml)
+        pdf_text = None
+        if not jats_xml:
+            # Europe PMC's own OA flag only covers papers PMC itself has
+            # deposited full text for -- many genuinely open-access papers
+            # (publisher's own site, preprint server, institutional
+            # repository) never go through PMC at all. OpenAlex's OA
+            # detection (Unpaywall-backed) is broader; confirmed live
+            # against a real paper this pipeline had marked not-open-access
+            # that OpenAlex correctly resolved to a direct PDF link.
+            doi = rec.get("doi") or paper.get("doi", "")
+            pdf_url = openalex_best_oa_pdf_url(doi) if doi else None
+            if pdf_url:
+                pdf_bytes = cached_get_binary(pdf_url, "openalex_pdf")
+                if pdf_bytes:
+                    pdf_text = pdf_bytes_to_text(pdf_bytes)
+
+        packet = build_packet(paper_id, rec.get("title") or paper.get("title", ""), rec.get("abstract", ""),
+                               jats_xml, pdf_text)
         (SPANS_DIR / f"{paper_id}.json").write_text(json.dumps(packet, indent=2))
 
         cat_counts = {cat: len(v) for cat, v in packet["spans_by_category"].items()}

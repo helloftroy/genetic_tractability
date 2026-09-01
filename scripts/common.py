@@ -112,6 +112,20 @@ def cached_get_json(url: str, host_key: str, retries: int = 3) -> Optional[dict]
     return None
 
 
+def peek_cached_json(url: str) -> Optional[dict]:
+    """Reads a URL's cached response if present, WITHOUT ever attempting a
+    network fetch (unlike cached_get_json, which falls back to fetching
+    unless CACHE_ONLY happens to be set) -- for reporting scripts that must
+    stay network-free regardless of what environment they're run in."""
+    cache_path = _cache_path(url)
+    if not cache_path.exists():
+        return None
+    try:
+        return json.loads(cache_path.read_text())
+    except Exception:
+        return None
+
+
 def cache_only_miss_count() -> int:
     """How many URLs were skipped (not fetched) because CACHE_ONLY is set
     and they weren't already warm -- call this at the end of a script and
@@ -136,6 +150,37 @@ def cached_get_text(url: str, host_key: str, retries: int = 3) -> Optional[str]:
                 cache_key.write_text(resp.text)
                 return resp.text
             if resp.status_code == 404:
+                return None
+            time.sleep(1.5 * (attempt + 1))
+        except requests.RequestException:
+            time.sleep(1.5 * (attempt + 1))
+    return None
+
+
+def cached_get_binary(url: str, host_key: str, retries: int = 2, timeout: int = 60) -> Optional[bytes]:
+    """Like cached_get_text but for binary content (PDFs). Never retried as
+    aggressively as the JSON/text fetchers -- a PDF fetch failure is far
+    more likely to be a real, permanent block (publisher bot-detection,
+    e.g. confirmed live: Wiley 403s a plain request even to a paper
+    OpenAlex itself marks fully open-access) than a transient network
+    blip, so this doesn't burn retries chasing something that won't
+    change. A 403/publisher block is treated the same as 404 -- this
+    paper just stays unfetchable, not an error worth retrying."""
+    global _cache_only_misses
+    cache_key = _cache_path(url).with_suffix(".pdf")
+    if cache_key.exists():
+        return cache_key.read_bytes()
+    if CACHE_ONLY:
+        _cache_only_misses += 1
+        return None
+    for attempt in range(retries):
+        _throttle(host_key)
+        try:
+            resp = _session.get(url, timeout=timeout)
+            if resp.status_code == 200 and resp.content:
+                cache_key.write_bytes(resp.content)
+                return resp.content
+            if resp.status_code in (403, 404):
                 return None
             time.sleep(1.5 * (attempt + 1))
         except requests.RequestException:
@@ -241,7 +286,60 @@ def is_cached(url: Optional[str], kind: str = "json") -> bool:
     path = _cache_path(url)
     if kind == "text":
         path = path.with_suffix(".txt")
+    elif kind == "pdf":
+        path = path.with_suffix(".pdf")
     return path.exists()
+
+
+# ---------------------------------------------------------------------------
+# OpenAlex (open-access PDF fallback -- Europe PMC's fullTextXML only covers
+# papers PMC itself has deposited full text for; OpenAlex's own OA detection
+# (Unpaywall-backed) is broader and catches genuinely open-access papers
+# hosted on a publisher's own site, a preprint server, or an institutional
+# repository that never went through PMC at all. Mirrors fair_ocean_agent's
+# own _auto_fetch_open_access_pdf design (workflow/handlers.py) -- confirmed
+# live there and re-confirmed here against a real paper this pipeline had
+# marked not-open-access: OpenAlex correctly showed is_oa=True with a direct
+# PDF link on the publisher's own site.
+# ---------------------------------------------------------------------------
+
+OPENALEX_BASE = "https://api.openalex.org"
+
+
+def openalex_best_oa_pdf_url(doi: str) -> Optional[str]:
+    """Returns a real, directly-downloadable PDF URL if OpenAlex marks this
+    DOI genuinely open access, else None. Never spoofs a browser User-Agent
+    to get past a publisher's bot-detection -- a block (403) is a real,
+    deliberate access decision, not a bug to route around; that paper just
+    stays unfetchable, exactly as before this fallback existed."""
+    if not doi:
+        return None
+    url = f"{OPENALEX_BASE}/works/https://doi.org/{normalize_doi(doi)}"
+    data = cached_get_json(url, "openalex")
+    if not data:
+        return None
+    best_oa = data.get("best_oa_location") or {}
+    pdf_url = best_oa.get("pdf_url")
+    if best_oa.get("is_oa") and pdf_url:
+        return pdf_url
+    return None
+
+
+def pdf_bytes_to_text(content: bytes) -> str:
+    """Plain-text extraction via pypdf -- deliberately simple (no per-page
+    layout-mode comparison or repeated-header/footer stripping, unlike
+    fair_ocean_agent's extraction/pdf.py): this pipeline only needs
+    keyword-taggable sentences, not a pixel-perfect reading order, so the
+    added complexity isn't worth it here."""
+    import io
+
+    from pypdf import PdfReader
+
+    try:
+        reader = PdfReader(io.BytesIO(content))
+        return "\n".join(page.extract_text() or "" for page in reader.pages)
+    except Exception:
+        return ""
 
 
 # ---------------------------------------------------------------------------
