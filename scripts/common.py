@@ -30,6 +30,14 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 CONTACT_EMAIL = os.environ.get("GENETIC_TRACTABILITY_CONTACT_EMAIL", "research@example.org")
 USER_AGENT = f"genetic-tractability-discovery/0.1 (mailto:{CONTACT_EMAIL})"
 
+# NCBI-specific config (spec: "Configuration should support NCBI_EMAIL,
+# NCBI_TOOL, NCBI_API_KEY. Do not hard-code credentials.") -- these are
+# separate from the generic CONTACT_EMAIL above so an NCBI-registered
+# email/tool name can differ from this pipeline's generic Europe PMC
+# contact, but default to it when NCBI_EMAIL isn't explicitly set.
+NCBI_EMAIL = os.environ.get("NCBI_EMAIL", CONTACT_EMAIL)
+NCBI_TOOL = os.environ.get("NCBI_TOOL", "genetic-tractability-discovery")
+
 
 def env_int(name: str, default: int) -> int:
     """Reads an integer discovery-depth knob from the environment (e.g. so
@@ -50,13 +58,29 @@ _session = requests.Session()
 _session.headers.update({"User-Agent": USER_AGENT})
 
 _last_request_time: Dict[str, float] = {}
-_MIN_INTERVAL = 0.2  # ~5 req/s, still polite for unauthenticated public APIs but faster for a much larger discovery scope
+_MIN_INTERVAL = 0.2  # default: ~5 req/s, fine for Europe PMC and OpenAlex
+
+# NCBI's documented E-utilities limit is 3 req/s without an API key, 10/s
+# with one -- confirmed live: a request fired right after another (using
+# the old shared 0.2s/5-per-sec default) got a real 429 "Maximum 3
+# requests per second per user" from the BioC endpoint. This applies to
+# ALL NCBI hosts (E-utilities and BioC alike, same backend), so both the
+# old ncbi_esearch/ncbi_esummary (genome matching) and the new
+# ncbi_eutils.py/pmc_bioc.py modules share this same, correctly-slower
+# throttle bucket rather than each guessing independently.
+NCBI_API_KEY = os.environ.get("NCBI_API_KEY", "")
+_HOST_MIN_INTERVAL = {
+    "ncbi": 0.11 if NCBI_API_KEY else 0.34,
+    "ncbi_eutils": 0.11 if NCBI_API_KEY else 0.34,
+    "ncbi_bioc": 0.11 if NCBI_API_KEY else 0.34,
+}
 
 
 def _throttle(host: str) -> None:
+    interval = _HOST_MIN_INTERVAL.get(host, _MIN_INTERVAL)
     now = time.time()
     last = _last_request_time.get(host, 0.0)
-    wait = _MIN_INTERVAL - (now - last)
+    wait = interval - (now - last)
     if wait > 0:
         time.sleep(wait)
     _last_request_time[host] = time.time()
@@ -346,15 +370,15 @@ def pdf_bytes_to_text(content: bytes) -> str:
 # NCBI E-utilities (genome assembly lookup)
 # ---------------------------------------------------------------------------
 
+def _ncbi_base_params() -> dict:
+    params = {"email": NCBI_EMAIL, "tool": NCBI_TOOL}
+    if NCBI_API_KEY:
+        params["api_key"] = NCBI_API_KEY
+    return params
+
+
 def ncbi_esearch(db: str, term: str, retmax: int = 20) -> List[str]:
-    params = {
-        "db": db,
-        "term": term,
-        "retmode": "json",
-        "retmax": retmax,
-        "email": CONTACT_EMAIL,
-        "tool": "genetic-tractability-discovery",
-    }
+    params = {**_ncbi_base_params(), "db": db, "term": term, "retmode": "json", "retmax": retmax}
     url = f"{NCBI_EUTILS_BASE}/esearch.fcgi?{urllib.parse.urlencode(params)}"
     data = cached_get_json(url, "ncbi")
     if not data:
@@ -365,13 +389,7 @@ def ncbi_esearch(db: str, term: str, retmax: int = 20) -> List[str]:
 def ncbi_esummary(db: str, ids: List[str]) -> dict:
     if not ids:
         return {}
-    params = {
-        "db": db,
-        "id": ",".join(ids),
-        "retmode": "json",
-        "email": CONTACT_EMAIL,
-        "tool": "genetic-tractability-discovery",
-    }
+    params = {**_ncbi_base_params(), "db": db, "id": ",".join(ids), "retmode": "json"}
     url = f"{NCBI_EUTILS_BASE}/esummary.fcgi?{urllib.parse.urlencode(params)}"
     data = cached_get_json(url, "ncbi")
     if not data:

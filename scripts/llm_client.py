@@ -124,6 +124,56 @@ def extract_json(text: str) -> Optional[dict | list]:
     return None
 
 
+def extract_json_array_lenient(text: str) -> list:
+    """Like extract_json, but recovers as many top-level array elements as
+    possible even if the response was cut off mid-object by max_tokens --
+    confirmed as a real failure mode live: a 6-attempt array truncated
+    during the 6th object caused extract_json's balanced-bracket fallback
+    to return only the FIRST object as a bare dict (the outer '[' never
+    found its matching ']'), silently discarding 5 valid, verified attempts.
+    Scans for the first top-level '[', then walks its immediate child
+    '{...}' objects by brace depth, json.loads'ing each independently and
+    keeping only the ones that parse -- a trailing truncated object is
+    dropped, but everything complete before it survives."""
+    stripped = strip_think_tags(text)
+    stripped = re.sub(r"^```(?:json)?\s*|\s*```$", "", stripped.strip(), flags=re.MULTILINE)
+    start = stripped.find("[")
+    if start == -1:
+        return []
+    items = []
+    depth = 0
+    obj_start = None
+    in_string = False
+    escape = False
+    for i in range(start + 1, len(stripped)):
+        ch = stripped[i]
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+        elif ch == "{":
+            if depth == 0:
+                obj_start = i
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0 and obj_start is not None:
+                try:
+                    items.append(json.loads(stripped[obj_start:i + 1]))
+                except json.JSONDecodeError:
+                    pass
+                obj_start = None
+        elif ch == "]" and depth == 0:
+            break
+    return items
+
+
 def ping(base_url: str = DEFAULT_BASE_URL, model: str = DEFAULT_MODEL) -> bool:
     try:
         out = chat("You are a test.", "Reply with exactly: OK", model=model, base_url=base_url, max_tokens=10)
